@@ -1,0 +1,12 @@
+.DS_Store
+.venv/
+__pycache__/
+__init__.py
+db.sqlite3
+test.py
+*/migrations/
+collected_static/
+uwsgi.*
+/static/
+
+/.idea/

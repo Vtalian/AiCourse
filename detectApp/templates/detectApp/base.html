@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatMean</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'js/jquery-3.6.1.min.js' %}"></script>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-md navbar-light bg-light mb-4 border">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% url 'detectApp:index' %}">
+                番茄病害检测系统</a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse"
+                aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarCollapse">
+                <ul class="navbar-nav me-auto mb-2 mb-md-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'detectApp:index' %}">
+                            病害大全</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'detectApp:index' %}">
+                            智能检测</a>
+                    </li>
+                </ul> <!-- End of links on left side of navbar -->
+
+                <!-- Account-related links -->
+                <ul class="navbar-nav ms-auto mb-2 mb-md-0">
+
+                    {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <span class="navbar-text me-2">Hello, {{ user.username }}.
+                        </span>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'detectApp:index' %}">
+                            Register</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'detectApp:index' %}">
+                            Log in</a>
+                    </li>
+                    {% endif %}
+
+                </ul> <!-- End of account-related links -->
+
+                {% if user.is_authenticated %}
+                <form action="{% url 'detectApp:index' %}" method='post'>
+                    {% csrf_token %}
+                    <button name='submit' class='btn btn-outline-secondary btn-sm'>
+                        Log out</button>
+                </form>
+                {% endif %}
+
+            </div> <!-- Closes collapsible parts of navbar -->
+
+        </div> <!-- Closes navbar's container -->
+    </nav> <!-- End of navbar -->
+
+
+    <main class="container">
+        <div class="pb-2 mb-2 ">
+            {% block page_header %}{% endblock page_header %}
+        </div>
+
+        <div>
+            {% block content %}{% endblock content %}
+        </div>
+    </main>
+</body>
+{% block extra_js %}
+{% endblock extra_js %}
+
+</html>
