@@ -20,7 +20,7 @@ def detectimg(request):
 
             disease=Disease.objects.get(name=predicted_class)
 
-            return JsonResponse({"status": "success", "res": predicted_class,"solution":disease.solution})
+            return JsonResponse({"status": "success", "res": predicted_class,"solution":disease.solution,"harm":disease.harm})
         except Exception as e:
             return JsonResponse({"status": "error", "message": str(e)}, status=500)
     return JsonResponse({"status": "error", "message": "Invalid request"}, status=400)

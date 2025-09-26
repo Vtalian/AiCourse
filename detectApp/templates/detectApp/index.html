@@ -6,6 +6,37 @@
         box-shadow: 0 0 0 4px #b6d0ff;
         transition: box-shadow 0.2s;
     }
+
+    #harm {
+        border-top: 1px dashed #b6d0ff;
+        margin-top: 1.5rem;
+        padding-top: 1.2rem;
+    }
+
+    /* 让左右两侧高度一致 */
+    .equal-height-row {
+        align-items: stretch;
+    }
+
+    .equal-height-col {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .equal-height-card {
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .equal-height-card .card-body {
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
 </style>
 {% endblock extra_style %}
 
@@ -13,22 +44,17 @@
 <h2 class="text-center my-4 text-primary fw-bold">病害检测</h2>
 {% endblock page_header %}
 
-<!-- ...保留 extends 和 page_header ... -->
-
 {% block content %}
 <div class="container">
-    <div class="row justify-content-center mb-4">
-        <!-- 左侧：画布区域（点击上传） -->
-        <div class="col-12 col-md-8 text-center mb-4">
-            <!-- 点击上传的区域 -->
-            <div class="position-relative mb-3" id="canvas-outer" style="min-height: 320px;">
-                <div class="ratio ratio-16x9 border rounded-4 shadow-sm overflow-hidden cursor-pointer"
+    <div class="row justify-content-center mb-4 equal-height-row">
+        <!-- 左侧：画布区域 -->
+        <div class="col-12 col-md-8 text-center mb-4 equal-height-col">
+            <div class="position-relative mb-3 h-100" id="canvas-outer" style="min-height: 320px;">
+                <div class="ratio ratio-16x9 border rounded-4 shadow-sm overflow-hidden cursor-pointer h-100"
                     id="canvas-wrapper" style="background: linear-gradient(135deg, #e0e7ff 0%, #f0f4ff 100%);">
                     <canvas id="video-canvas" class="w-100 h-100 rounded" style="background: transparent;"></canvas>
-                    <!-- 隐藏的文件选择框 -->
                     <input type="file" name="frame" accept="image/*" class="d-none" id="fileInput">
                 </div>
-                <!-- 优化后的提示层，放在 position-relative 容器下 -->
                 <div id="upload-hint" class="position-absolute top-50 start-50 translate-middle text-center"
                     style="pointer-events: none; z-index: 2;">
                     <div class="bg-white bg-opacity-75 rounded-4 shadow-lg p-4 mx-auto" style="max-width: 90%;">
@@ -38,21 +64,23 @@
                     </div>
                 </div>
             </div>
-
         </div>
-
-        <!-- 右侧：统计结果 -->
-        <div class="col-12 col-md-4">
-            <div class="card border-0 shadow rounded-4">
-                <div class="card-body text-center">
-                    <h5 class="card-title text-primary">结果</h5>
-                    <p class="card-text display-3 fw-bold" id="result">-</p>
+        <!-- 右侧：结果面板 -->
+        <div class="col-12 col-md-4 equal-height-col">
+            <div class="card border-0 shadow rounded-4 equal-height-card">
+                <div class="card-body text-center d-flex flex-column justify-content-center">
+                    <h5 class="card-title text-primary">检测结果</h5>
+                    <p class="card-text display-4 fw-bold" id="result">-</p>
                     <div id="loading" class="my-3" style="display: none;">
                         <div class="spinner-border text-info" role="status"></div>
                     </div>
-                    <div id="solution" hidden>
+                    <div id="harm">
+                        <h5 class="card-title text-primary">疾病危害</h5>
+                        <p class="card-text lh-lg fw-bold" id="harm-content">-</p>
+                    </div>
+                    <div id="solution">
                         <h5 class="card-title text-primary">解决办法</h5>
-                        <p class="card-text display-6 fw-bold" id="content"></p>
+                        <p class="card-text lh-lg fw-bold" id="content">-</p>
                     </div>
                 </div>
             </div>
@@ -65,7 +93,6 @@
         </div>
     </div>
 </div>
-
 {% endblock content %}
 
 {% block extra_js %}
@@ -77,6 +104,10 @@
     const hint = document.getElementById("upload-hint");
     const loading = document.getElementById("loading");
     const ResultShow = document.getElementById("result");
+    const solutionBlock = document.getElementById("solution");
+    const contentBlock = document.getElementById("content");
+    const harmBlock = document.getElementById("harm");
+    const harm_contentBlock = document.getElementById("harm-content");
 
     // 点击画布区域触发文件选择
     wrapper.addEventListener("click", () => fileInput.click());
@@ -90,9 +121,7 @@
         reader.onload = function (e) {
             const img = new Image();
             img.onload = function () {
-                // 清除提示文字
                 hint.style.display = "none";
-                // 调整 canvas 尺寸并绘制图片
                 canvas.width = img.width;
                 canvas.height = img.height;
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
@@ -105,19 +134,20 @@
         uploadImage(file);
     });
 
+    // 页面加载时，面板直接显示（已在HTML中去掉hidden）
+
     function uploadImage(file) {
         const formData = new FormData();
         formData.append("frame", file);
 
         loading.style.display = "block";
-        fetch("{% url 'detectApp:detectimg' %}", {  // TODO: 替换为你的后端 URL
+        fetch("{% url 'detectApp:detectimg' %}", {
             method: "POST",
             headers: { "X-CSRFToken": getCookie("csrftoken") },
             body: formData,
         })
             .then(res => res.json())
             .then(data => {
-                // 切换字体大小
                 ResultShow.classList.remove("display-3", "display-6");
 
                 if (data.res) {
@@ -129,21 +159,17 @@
                     ResultShow.innerText = "-";
                 }
 
-                const solutionBlock = document.getElementById("solution");
-                const contentBlock = document.getElementById("content");
-                if (data.solution) {
-                    solutionBlock.hidden = false;
-                    contentBlock.innerText = data.solution;
-                } else {
-                    solutionBlock.hidden = true;
-                    contentBlock.innerText = "";
-                }
+                // 直接更新内容，不再动态隐藏
+                contentBlock.innerText = data.solution ? data.solution : "-";
+                harm_contentBlock.innerText = data.harm ? data.harm : "-";
             })
             .catch(err => {
                 console.error(err);
                 ResultShow.classList.remove("display-3", "display-6");
                 ResultShow.classList.add("display-3");
                 ResultShow.innerText = "错误";
+                contentBlock.innerText = "-";
+                harm_contentBlock.innerText = "-";
             })
             .finally(() => {
                 loading.style.display = "none";
@@ -164,6 +190,5 @@
         }
         return cookieValue;
     }
-
 </script>
 {% endblock extra_js %}

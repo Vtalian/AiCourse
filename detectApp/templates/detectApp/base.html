@@ -9,6 +9,90 @@
     <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
     <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
     <script src="{% static 'js/jquery-3.6.1.min.js' %}"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans SC', 'Inter', 'Helvetica Neue', Arial, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background-color: #f5f6fa;
+        }
+    
+        .card {
+            transition: box-shadow 0.2s, transform 0.2s;
+        }
+    
+        .card:hover {
+            box-shadow: 0 8px 32px 0 rgba(80, 120, 255, 0.10), 0 1.5px 6px 0 rgba(0, 0, 0, 0.03);
+            transform: translateY(-2px) scale(1.01);
+        }
+    
+        .btn-outline-primary,
+        .btn-primary {
+            transition: box-shadow 0.2s, background 0.2s, color 0.2s;
+        }
+    
+        .btn-outline-primary:hover,
+        .btn-primary:hover {
+            box-shadow: 0 2px 12px 0 rgba(80, 120, 255, 0.10);
+            background: #e0e7ff;
+            color: #0d6efd;
+        }
+    
+        .rounded-4 {
+            border-radius: 1.5rem !important;
+        }
+    
+        .shadow-lg {
+            box-shadow: 0 8px 32px 0 rgba(80, 120, 255, 0.10), 0 1.5px 6px 0 rgba(0, 0, 0, 0.03) !important;
+        }
+    
+        .fs-5,
+        .fs-6 {
+            line-height: 1.8;
+        }
+    
+        /* 让上传提示层更柔和 */
+        #upload-hint .bg-white {
+            backdrop-filter: blur(2px);
+        }
+    
+        /* 让canvas区域在移动端也有圆角 */
+        #canvas-wrapper {
+            border-radius: 1.5rem !important;
+        }
+    
+        /* 结果区数字更醒目 */
+        #result a,
+        #result {
+            font-size: 2rem;
+            letter-spacing: 1px;
+        }
+    
+        /* 解决办法区分色 */
+        #solution {
+            border-top: 1px dashed #b6d0ff;
+            margin-top: 1.5rem;
+            padding-top: 1.2rem;
+        }
+    
+        /* 消息提示动画 */
+        #message-box.show {
+            animation: fadeInDown 0.5s;
+        }
+    
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+    
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+    <!-- Google Fonts 字体引入 -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Noto+Sans+SC:wght@400;700&display=swap"
+        rel="stylesheet">
     {% block extra_style %}{% endblock extra_style %}
 </head>
 
