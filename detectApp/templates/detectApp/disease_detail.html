@@ -1,0 +1,54 @@
+{% extends 'detectApp/base.html' %}
+
+{% block extra_style %}
+<style>
+
+</style>
+{% endblock extra_style %}
+
+{% block page_header %}
+<h2 class="text-center my-4 text-primary fw-bold">{{ disease.name }}</h2>
+{% endblock page_header %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center mb-5">
+        <div class="col-12 col-lg-8">
+            <div class="card border-0 shadow-lg rounded-4 mb-4"
+                style="background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);">
+                <div class="card-body px-4 py-5">
+                    <div class="mb-4">
+                        <h6 class="fw-bold text-secondary mb-2">
+                            <i class="bi bi-info-circle me-2 text-primary">症状</i>
+                        </h6>
+                        <p class="card-text lh-lg">{{ disease.description }}</p>
+                    </div>
+                    <div class="mb-4">
+                        <h6 class="fw-bold text-secondary mb-2">
+                            <i class="bi bi-exclamation-triangle me-2 text-primary">危害</i>
+                        </h6>
+                        <p class="card-text lh-lg">{{ disease.harm }}</p>
+                    </div>
+                    <div class="mb-4">
+                        <h6 class="fw-bold text-secondary mb-2">
+                            <i class="bi bi-shield-check me-2 text-primary">预防措施</i>
+                        </h6>
+                        <p class="card-text lh-lg" style="white-space: pre-line;">{{ disease.precaution }}</p>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold text-primary mb-2">
+                            <i class="bi bi-lightbulb me-2 text-primary">解决办法</i>
+                        </h6>
+                        <p class="card-text fw-bold lh-lg text-primary-emphasis">{{ disease.solution }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center">
+                <a href="{% url 'detectApp:index' %}" class="btn btn-outline-primary rounded-pill px-4 shadow-sm">
+                    <i class="bi bi-arrow-left"></i> 返回检测
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

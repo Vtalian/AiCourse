@@ -52,7 +52,7 @@
                     </div>
                     <div id="solution" hidden>
                         <h5 class="card-title text-primary">解决办法</h5>
-                        <p class="card-text display-3 fw-bold" id="result">-</p>
+                        <p class="card-text display-6 fw-bold" id="content"></p>
                     </div>
                 </div>
             </div>
@@ -122,10 +122,21 @@
 
                 if (data.res) {
                     ResultShow.classList.add("display-6");
-                    ResultShow.innerText = data.res;
+                    const detailUrl = "{% url 'detectApp:disease_detail' 'DISEASE_NAME' %}".replace('DISEASE_NAME', encodeURIComponent(data.res));
+                    ResultShow.innerHTML = `<a href="${detailUrl}" class="text-decoration-none text-primary fw-bold">${data.res}</a>`;
                 } else {
                     ResultShow.classList.add("display-3");
                     ResultShow.innerText = "-";
+                }
+
+                const solutionBlock = document.getElementById("solution");
+                const contentBlock = document.getElementById("content");
+                if (data.solution) {
+                    solutionBlock.hidden = false;
+                    contentBlock.innerText = data.solution;
+                } else {
+                    solutionBlock.hidden = true;
+                    contentBlock.innerText = "";
                 }
             })
             .catch(err => {

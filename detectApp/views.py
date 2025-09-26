@@ -4,6 +4,7 @@ from django.http import JsonResponse
 from PIL import Image
 from Core.ModelUse import predict_image
 
+from .models import Disease
 # Create your views here.
 def index(request):
     return render(request, "detectApp/index.html")
@@ -17,7 +18,17 @@ def detectimg(request):
             # 模型预测
             predicted_class = predict_image(image)
 
-            return JsonResponse({"status": "success", "res": predicted_class})
+            disease=Disease.objects.get(name=predicted_class)
+
+            return JsonResponse({"status": "success", "res": predicted_class,"solution":disease.solution})
         except Exception as e:
             return JsonResponse({"status": "error", "message": str(e)}, status=500)
     return JsonResponse({"status": "error", "message": "Invalid request"}, status=400)
+
+def disease_detail(request, name):
+    try:
+        disease = Disease.objects.get(name=name)
+    except Disease.DoesNotExist:
+        return render(request, "detectApp/disease_not_found.html", {"name": name})
+
+    return render(request, "detectApp/disease_detail.html", {"disease": disease})
