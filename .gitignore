@@ -10,3 +10,4 @@ uwsgi.*
 /static/
 
 /.idea/
+Model/

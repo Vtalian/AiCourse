@@ -33,7 +33,6 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     #My apps
     'detectApp',
-
     #Django apps
     'django.contrib.admin',
     'django.contrib.auth',

@@ -1,7 +1,147 @@
 {% extends 'detectApp/base.html' %}
 
+{% block page_header %}
+<h2 class="text-center my-4 text-primary fw-bold">人数检测</h2>
+{% endblock page_header %}
+
+<!-- ...保留 extends 和 page_header ... -->
+
 {% block content %}
-<div class="table-responsive">
-    welcome to detectApp!
+<div class="container">
+    <div class="row justify-content-center mb-4">
+        <!-- 左侧：画布区域（点击上传） -->
+        <div class="col-12 col-md-8 text-center mb-4">
+            <!-- 点击上传的区域 -->
+            <div class="ratio ratio-16x9 border rounded-4 shadow-sm overflow-hidden bg-dark-subtle mb-3 position-relative cursor-pointer"
+                id="canvas-wrapper">
+                <canvas id="video-canvas" class="w-100 h-100 rounded"></canvas>
+                <!-- 隐藏的文件选择框 -->
+                <input type="file" name="frame" accept="image/*" class="d-none" id="fileInput">
+                <!-- 提示层 -->
+                <div id="upload-hint" class="position-absolute top-50 start-50 translate-middle text-center text-muted">
+                    <i class="bi bi-cloud-upload fs-1"></i>
+                    <p class="mb-0">点击上传图片</p>
+                </div>
+            </div>
+
+            <!-- 控制按钮 -->
+            <div class="d-flex flex-wrap align-items-stretch gap-3 mt-3">
+                <div class="flex-fill d-flex flex-column gap-2">
+                    <div class="d-flex gap-2">
+                        <button id="submit-count-btn" class="btn btn-primary w-100">检测人数</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧：统计结果 -->
+        <div class="col-12 col-md-4">
+            <div class="card border-0 shadow rounded-4">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-primary">结果</h5>
+                    <p class="card-text display-3 fw-bold" id="result">-</p>
+                    <div id="loading" class="my-3" style="display: none;">
+                        <div class="spinner-border text-info" role="status"></div>
+                    </div>
+                </div>
+            </div>
+            <div id="message-box"
+                class="alert alert-info alert-dismissible fade d-none position-fixed bottom-0 start-50 translate-middle-x mb-4"
+                role="alert" style="z-index: 1050; min-width: 300px;">
+                <span id="message-text"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
 </div>
+
 {% endblock content %}
+
+{% block extra_js %}
+<script>
+    const canvas = document.getElementById("video-canvas");
+        const ctx = canvas.getContext("2d");
+        const fileInput = document.getElementById("fileInput");
+        const wrapper = document.getElementById("canvas-wrapper");
+        const hint = document.getElementById("upload-hint");
+        const loading = document.getElementById("loading");
+        const ResultShow = document.getElementById("result");
+
+        // 点击画布区域触发文件选择
+        wrapper.addEventListener("click", () => fileInput.click());
+
+        // 用户选择文件后
+        fileInput.addEventListener("change", (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const img = new Image();
+                img.onload = function () {
+                    // 清除提示文字
+                    hint.style.display = "none";
+                    // 调整 canvas 尺寸并绘制图片
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+
+            // 自动上传检测
+            uploadImage(file);
+        });
+
+        function uploadImage(file) {
+            const formData = new FormData();
+            formData.append("frame", file);
+
+            loading.style.display = "block";
+            fetch("{% url 'detectApp:detectimg' %}", {  // TODO: 替换为你的后端 URL
+                method: "POST",
+                headers: { "X-CSRFToken": getCookie("csrftoken") },
+                body: formData,
+            })
+                .then(res => res.json())
+                .then(data => {
+                    // 切换字体大小
+                    ResultShow.classList.remove("display-3", "display-6");
+
+                    if (data.res) {
+                        ResultShow.classList.add("display-6");
+                        ResultShow.innerText = data.res;
+                    } else {
+                        ResultShow.classList.add("display-3");
+                        ResultShow.innerText = "-";
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    ResultShow.classList.remove("display-3", "display-6");
+                    ResultShow.classList.add("display-3");
+                    ResultShow.innerText = "错误";
+                })
+                .finally(() => {
+                    loading.style.display = "none";
+                });
+        }
+
+        function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== "") {
+                    const cookies = document.cookie.split(";");
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === name + "=") {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+
+</script>
+{% endblock extra_js %}
