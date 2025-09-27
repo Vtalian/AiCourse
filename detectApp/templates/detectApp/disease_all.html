@@ -362,7 +362,12 @@
             </div>
             <div class="disease-content">
                 <h3 class="disease-name">{{ disease.name }}</h3>
-                <p class="disease-description">{{ disease.description }}</p>
+                <p class="disease-description">
+                    {% if disease.description|length > 50 %}
+                    {{ disease.description|slice:":50" }}...
+                    {% else %}
+                    {{ disease.description }}
+                    {% endif %}            </p>
                 <div class="disease-meta">
                     {% if disease.harmlevel == "2" %}
                     <span class="disease-severity high">

@@ -2,34 +2,52 @@
 import torch
 import torch.nn as nn
 import torchvision.transforms as transforms
+from torchvision import models
 from PIL import Image
 import os
 
+
 # 你的模型结构
-class SimpleCNNClassifier(nn.Module):
-    def __init__(self, num_classes=15, dropout_rate=0.2):
+class CNNClassifierConvNeXt(nn.Module):
+    def __init__(self, num_classes=10, dropout_rate=0.2, model_type="convnext_tiny"):
         super().__init__()
-        self.features = nn.Sequential(
-            nn.Conv2d(3, 32, kernel_size=3, padding=1),
-            nn.BatchNorm2d(32),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(2, 2),  # 112x112
-            nn.Conv2d(32, 64, kernel_size=3, padding=1),
-            nn.BatchNorm2d(64),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(2, 2),  # 56x56
-            nn.Conv2d(64, 128, kernel_size=3, padding=1),
-            nn.BatchNorm2d(128),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(2, 2),  # 28x28
-            nn.Conv2d(128, 256, kernel_size=3, padding=1),
-            nn.BatchNorm2d(256),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(2, 2),  # 14x14
-        )
-        self.classifier = nn.Sequential(
-            nn.Flatten(),
-            nn.Linear(256 * 14 * 14, 512),
+
+        # 加载预训练的ConvNeXt模型
+        if model_type == "convnext_tiny":
+            self.backbone = models.convnext_tiny(pretrained=True)
+        elif model_type == "convnext_small":
+            self.backbone = models.convnext_small(pretrained=True)
+        elif model_type == "convnext_base":
+            self.backbone = models.convnext_base(pretrained=True)
+        else:
+            self.backbone = models.convnext_tiny(pretrained=True)
+
+        # 正确获取特征维度
+        # 对于ConvNeXt模型，需要先获取分类器的输入特征数
+        if hasattr(self.backbone, "classifier"):
+            if isinstance(self.backbone.classifier, nn.Sequential):
+                # 查找最后一个线性层
+                for layer in reversed(self.backbone.classifier):
+                    if isinstance(layer, nn.Linear):
+                        in_features = layer.in_features
+                        break
+                else:
+                    # 如果没有找到线性层，使用默认值
+                    in_features = 768  # ConvNeXt Tiny的默认特征维度
+            else:
+                in_features = self.backbone.classifier.in_features
+        else:
+            # 对于不同的ConvNeXt版本，尝试获取特征维度
+            in_features = 768  # 默认值，适用于ConvNeXt Tiny
+
+        print(f"Detected in_features: {in_features}")
+
+        # 替换分类器 - 修复版本
+        self.backbone.classifier = nn.Sequential(
+            nn.AdaptiveAvgPool2d((1, 1)),  # 添加全局平均池化
+            nn.Flatten(1),  # 展平特征
+            nn.Dropout(dropout_rate),
+            nn.Linear(in_features, 512),
             nn.BatchNorm1d(512),
             nn.ReLU(inplace=True),
             nn.Dropout(dropout_rate),
@@ -37,15 +55,15 @@ class SimpleCNNClassifier(nn.Module):
         )
 
     def forward(self, x):
-        x = self.features(x)
-        x = self.classifier(x)
-        return x
+        return self.backbone(x)
 
 
 # ---------------- 模型加载 ----------------
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model = SimpleCNNClassifier(num_classes=15)
-model.load_state_dict(torch.load(os.path.join('Core','Model','CNN.pth'), map_location=device))  # 载入训练好的权重
+model = CNNClassifierConvNeXt()
+model.load_state_dict(
+    torch.load(os.path.join("Core", "Model", "ConvNeXt.pth"), map_location=device)
+)  # 载入训练好的权重
 model.to(device)
 model.eval()
 
@@ -58,23 +76,18 @@ transform = transforms.Compose(
     ]
 )
 
-CLASS_NAMES = [f"{i}" for i in range(15)]  # TODO: 改成你真实的类别名称
+CLASS_NAMES = [f"{i}" for i in range(10)]  # TODO: 改成你真实的类别名称
 Classnames = {
-    0: "彩椒细菌斑点病",
-    1: "彩椒健康",
-    2: "马铃薯早疫病",
-    3: "马铃薯晚疫病",
-    4: "马铃薯健康",
-    5: "番茄细菌斑点病",
-    6: "番茄早疫病",
-    7: "番茄晚疫病",
-    8: "番茄叶霉病",
-    9: "番茄斑点病（Septoria叶斑病）",
-    10: "番茄红蜘蛛（双斑螨）",
-    11: "番茄靶斑病",
-    12: "番茄黄叶卷叶病毒",
-    13: "番茄马赛克病毒",
-    14: "番茄健康",
+    0: "番茄细菌斑点病",
+    1: "番茄早疫病",
+    2: "番茄晚疫病",
+    3: "番茄叶霉病",
+    4: "番茄斑点病（Septoria叶斑病）",
+    5: "番茄红蜘蛛（双斑螨）",
+    6: "番茄靶斑病",
+    7: "番茄黄叶卷叶病毒",
+    8: "番茄花叶病毒",
+    9: "番茄健康",
 }
 def predict_image(image: Image.Image):
     img_tensor = transform(image).unsqueeze(0).to(device)  # (1,3,224,224)

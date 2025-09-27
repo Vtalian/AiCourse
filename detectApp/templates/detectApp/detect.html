@@ -157,11 +157,34 @@
     // 点击画布区域触发文件选择
     wrapper.addEventListener("click", () => fileInput.click());
 
+    // 拖拽相关事件
+    wrapper.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        wrapper.style.boxShadow = "0 0 0 4px #4dabf7"; // 拖拽时高亮
+    });
+
+    wrapper.addEventListener("dragleave", (e) => {
+        e.preventDefault();
+        wrapper.style.boxShadow = "0 0 0 4px #b6d0ff"; // 恢复原样
+    });
+
+    wrapper.addEventListener("drop", (e) => {
+        e.preventDefault();
+        wrapper.style.boxShadow = "0 0 0 4px #b6d0ff"; // 恢复原样
+        const file = e.dataTransfer.files[0];
+        if (!file) return;
+        handleFile(file);
+    });
+
     // 用户选择文件后
     fileInput.addEventListener("change", (event) => {
         const file = event.target.files[0];
         if (!file) return;
+        handleFile(file);
+    });
 
+    function handleFile(file) {
+        // 显示图片
         const reader = new FileReader();
         reader.onload = function (e) {
             const img = new Image();
@@ -177,9 +200,7 @@
 
         // 自动上传检测
         uploadImage(file);
-    });
-
-    // 页面加载时，面板直接显示（已在HTML中去掉hidden）
+    }
 
     function uploadImage(file) {
         const formData = new FormData();
@@ -196,21 +217,18 @@
                 ResultShow.classList.remove("display-3", "display-6");
 
                 if (data.res) {
-                    // 结果文字
                     ResultShow.innerHTML = `<a href="/disease/${encodeURIComponent(data.res)}/" 
-                             class="text-decoration-none text-primary fw-bold">${data.res}</a>`;
+                     class="text-decoration-none text-primary fw-bold">${data.res}</a>`;
 
-                    // 状态徽章
                     const badge = document.getElementById("status-badge");
-                    if (data.status === "healthy") {
+                    if (data.health_status === "healthy") {
                         badge.innerHTML = `<span class="badge bg-success fs-6 px-3 py-2">✅ 健康植株</span>`;
-                    } else if (data.status === "suspect") {
+                    } else if (data.health_status === "suspect") {
                         badge.innerHTML = `<span class="badge bg-warning text-dark fs-6 px-3 py-2">⚠️ 疑似病害</span>`;
                     } else {
                         badge.innerHTML = `<span class="badge bg-danger fs-6 px-3 py-2">❌ 检测出病害</span>`;
                     }
 
-                    // 置信度显示
                     if (data.confidence) {
                         const conf = Math.round(data.confidence * 100);
                         document.getElementById("confidence-wrapper").style.display = "block";
@@ -223,7 +241,6 @@
                     ResultShow.innerText = "-";
                 }
 
-                // 直接更新内容，不再动态隐藏
                 contentBlock.innerText = data.solution ? data.solution : "-";
                 harm_contentBlock.innerText = data.harm ? data.harm : "-";
             })

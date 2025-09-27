@@ -25,7 +25,11 @@ SECRET_KEY = 'django-insecure-r*&gwmihuu1)613xe_-5$5h%#i62ldm!0+=kisr%r*0bc!^fg0
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://www.vtalian.top",
+]
 
 
 # Application definition
@@ -107,7 +111,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Shanghai'
 
 USE_I18N = True
 

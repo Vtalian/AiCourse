@@ -2,7 +2,7 @@
 
 {% block extra_style %}
 <style>
-    /* 给卡片添加柔和阴影和圆角 */
+    /* 卡片整体风格 */
     .disease-card {
         background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
         border-radius: 1.2rem;
@@ -14,7 +14,7 @@
         transform: translateY(-4px);
     }
 
-    /* 图标标题对齐 */
+    /* 标题和图标 */
     .section-title {
         display: flex;
         align-items: center;
@@ -34,21 +34,19 @@
         color: #475569;
     }
 
-    /* 解决办法的高亮 */
-    .solution {
-        background: #fefce8;
-        border-left: 4px solid #facc15;
-        padding: 0.75rem 1rem;
-        border-radius: 0.5rem;
-        font-weight: 600;
-        color: #854d0e;
-    }
-
-    /* 返回按钮美化 */
+    /* 返回按钮 */
     .back-btn {
         border-radius: 9999px;
         padding: 0.6rem 1.6rem;
         font-weight: 500;
+    }
+
+    /* 封面图片 */
+    .disease-cover {
+        max-height: 300px;
+        object-fit: cover;
+        width: 100%;
+        border-bottom: 1px solid #e5e7eb;
     }
 </style>
 {% endblock extra_style %}
@@ -58,7 +56,7 @@
     <div class="row justify-content-center mb-5">
         <div class="col-12 col-lg-8">
 
-            <!-- 顶部标题 + 图标 -->
+            <!-- 顶部标题 -->
             <div class="text-center mb-4">
                 <h2 class="fw-bold text-success">{{ disease.name }}</h2>
                 <p class="text-muted">作物病害百科 · AI检测推荐</p>
@@ -66,6 +64,12 @@
 
             <!-- 详情卡片 -->
             <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+
+                <!-- 图片封面 -->
+                {% if disease.image %}
+                <img src="{{ disease.image.url }}" alt="{{ disease.name }}" class="disease-cover">
+                {% endif %}
+
                 <div class="card-body px-4 py-5">
 
                     <!-- 症状 -->
@@ -120,12 +124,12 @@
 
             <!-- 返回按钮 -->
             <div class="text-center mt-4">
-                <a href="{% url 'detectApp:index' %}" class="btn btn-primary back-btn shadow-sm">
+                <a href="{% url 'detectApp:detect' %}" class="btn btn-primary back-btn shadow-sm">
                     <i class="bi bi-arrow-left"></i> 返回检测
                 </a>
             </div>
+
         </div>
     </div>
 </div>
-
 {% endblock content %}

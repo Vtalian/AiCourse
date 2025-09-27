@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 
 from PIL import Image
 from Core.ModelUse import predict_image
@@ -12,6 +13,7 @@ def index(request):
 def detect(request):
     return render(request, "detectApp/detect.html")
 
+@csrf_exempt
 def detectimg(request):
     if request.method == "POST" and request.FILES.get("frame"):
         try:
@@ -22,8 +24,12 @@ def detectimg(request):
             predicted_class = predict_image(image)
 
             disease=Disease.objects.get(name=predicted_class)
+            if disease.harmlevel=="0":
+                health_status="healthy"
+            else:
+                health_status="severe"
 
-            return JsonResponse({"status": "success", "res": predicted_class,"solution":disease.solution,"harm":disease.harm})
+            return JsonResponse({"status": "success", "res": predicted_class,"solution":disease.solution,"harm":disease.harm,'health_status':health_status})
         except Exception as e:
             return JsonResponse({"status": "error", "message": str(e)}, status=500)
     return JsonResponse({"status": "error", "message": "Invalid request"}, status=400)
