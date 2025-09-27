@@ -1,0 +1,477 @@
+{% extends 'detectApp/base.html' %}
+
+{% block extra_style %}
+<style>
+    /* 页面标题样式 */
+    .disease-library-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+    }
+
+    .disease-library-header h1 {
+        color: #2e7d32;
+        font-weight: 700;
+        margin-bottom: 0.8rem;
+        font-size: 2.2rem;
+    }
+
+    .disease-library-header p {
+        color: #666;
+        font-size: 1.1rem;
+        max-width: 700px;
+        margin: 0 auto;
+    }
+
+    /* 病害分类筛选 */
+    .category-filter {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+        gap: 0.8rem;
+    }
+
+    .category-btn {
+        padding: 0.5rem 1.2rem;
+        border: 2px solid #e0e0e0;
+        background: white;
+        color: #666;
+        border-radius: 50px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .category-btn.active,
+    .category-btn:hover {
+        background: #2e7d32;
+        color: white;
+        border-color: #2e7d32;
+        transform: translateY(-2px);
+    }
+
+    /* 病害卡片网格布局 */
+    .disease-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+    }
+
+    .disease-card {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .disease-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .disease-image {
+        height: 180px;
+        background: linear-gradient(135deg, #f0f7f0 0%, #e8f5e9 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .disease-image i {
+        font-size: 4rem;
+        color: #a5d6a7;
+        opacity: 0.7;
+    }
+
+    .disease-tag {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 0.3rem 0.8rem;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: #2e7d32;
+    }
+
+    .disease-content {
+        padding: 1.5rem;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .disease-name {
+        color: #2e7d32;
+        font-weight: 700;
+        margin-bottom: 0.8rem;
+        font-size: 1.3rem;
+        line-height: 1.3;
+    }
+
+    .disease-description {
+        color: #666;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        margin-bottom: 1.2rem;
+        flex-grow: 1;
+    }
+
+    .disease-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: auto;
+    }
+
+    .disease-severity {
+        display: flex;
+        align-items: center;
+        color: #ff9800;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    .disease-severity i {
+        margin-right: 0.3rem;
+    }
+
+    .view-details-btn {
+        background: #f0f7f0;
+        color: #2e7d32;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .view-details-btn:hover {
+        background: #2e7d32;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    /* 搜索区域 */
+    .search-section {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .search-container {
+        display: flex;
+        max-width: 500px;
+        margin: 0 auto;
+    }
+
+    .search-input {
+        flex-grow: 1;
+        border: 2px solid #e0e0e0;
+        border-right: none;
+        border-radius: 50px 0 0 50px;
+        padding: 0.8rem 1.5rem;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: #2e7d32;
+    }
+
+    .search-btn {
+        background: #2e7d32;
+        color: white;
+        border: none;
+        border-radius: 0 50px 50px 0;
+        padding: 0 1.5rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .search-btn:hover {
+        background: #1b5e20;
+    }
+
+    /* 无结果提示 */
+    .no-results {
+        text-align: center;
+        padding: 3rem;
+        color: #666;
+        display: none;
+    }
+
+    .no-results i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: #ccc;
+    }
+
+    /* 响应式调整 */
+    @media (max-width: 768px) {
+        .disease-grid {
+            grid-template-columns: 1fr;
+            gap: 1.2rem;
+        }
+
+        .disease-library-header h1 {
+            font-size: 1.8rem;
+        }
+
+        .category-filter {
+            gap: 0.5rem;
+        }
+
+        .category-btn {
+            padding: 0.4rem 1rem;
+            font-size: 0.9rem;
+        }
+    }
+
+    /* 装饰元素 */
+    .library-decoration {
+        position: absolute;
+        opacity: 0.03;
+        z-index: 0;
+        font-size: 10rem;
+        color: #2e7d32;
+    }
+
+    .library-leaf-1 {
+        top: 10%;
+        left: 5%;
+    }
+
+    .library-leaf-2 {
+        bottom: 10%;
+        right: 5%;
+        transform: rotate(45deg);
+    }
+    .disease-severity.high { color: #e53935; }
+    .disease-severity.medium { color: #fb8c00; }
+    .disease-severity.healthy { color: #43a047; }
+</style>
+
+<style>
+    /* 图标动画 */
+@keyframes flash-red {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.1) rotate(-5deg); }
+}
+
+@keyframes flash-orange {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes flash-green {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+/* 危害等级样式 */
+.disease-severity.high {
+    color: #e53935;
+}
+.disease-severity.high i {
+    animation: flash-red 1s infinite;
+}
+
+.disease-severity.medium {
+    color: #fb8c00;
+}
+.disease-severity.medium i {
+    animation: flash-orange 1.2s infinite;
+}
+
+.disease-severity.healthy {
+    color: #43a047;
+}
+.disease-severity.healthy i {
+    animation: flash-green 1.5s infinite;
+}
+
+.disease-severity i {
+    margin-right: 0.3rem;
+    font-size: 1.1rem; /* 放大图标更醒目 */
+}
+
+</style>
+{% endblock extra_style %}
+
+{% block page_header %}
+{% endblock page_header %}
+
+{% block content %}
+<div class="container">
+    <div class="disease-library-header">
+        <h1>番茄病害大全</h1>
+        <p>了解常见番茄病害的症状、危害及防治方法，助力您的番茄健康生长</p>
+    </div>
+    <!-- 搜索区域 -->
+    <div class="search-section">
+        <div class="search-container">
+            <input type="text" class="search-input" id="diseaseSearch" placeholder="搜索病害名称...">
+            <button class="search-btn" id="searchButton">
+                <i class="bi bi-search"></i>
+            </button>
+        </div>
+    </div>
+    <!-- 病害分类筛选 -->
+    <div class="category-filter">
+        <button class="category-btn active" data-category="all">全部病害</button>
+        <button class="category-btn" data-category="bacterial">细菌性病害</button>
+        <button class="category-btn" data-category="fungal">真菌性病害</button>
+        <button class="category-btn" data-category="viral">病毒性病害</button>
+        <button class="category-btn" data-category="pest">虫害</button>
+        <button class="category-btn" data-category="healthy">健康状态</button>
+    </div>
+    <!-- 病害卡片网格 -->
+    <div class="disease-grid" id="diseaseGrid">
+        {% for disease in diseases %}
+        <div class="disease-card" data-category="{{ disease.category }}">
+            <div class="disease-image">
+                {% if disease.image %}
+                <img src="{{ disease.image.url }}" alt="{{ disease.name }}"
+                    style="width: 100%; height: 100%; object-fit: cover; border-radius: 1.5rem 1.5rem 0 0;">
+                {% else %}
+                <i class="bi bi-image"></i>
+                {% endif %}
+                <span class="disease-tag">
+                    {% if disease.category == "bacterial" %}细菌性
+                    {% elif disease.category == "fungal" %}真菌性
+                    {% elif disease.category == "viral" %}病毒性
+                    {% elif disease.category == "pest" %}虫害
+                    {% elif disease.category == "healthy" %}健康状态
+                    {% else %}其他{% endif %}
+                </span>
+            </div>
+            <div class="disease-content">
+                <h3 class="disease-name">{{ disease.name }}</h3>
+                <p class="disease-description">{{ disease.description }}</p>
+                <div class="disease-meta">
+                    {% if disease.harmlevel == "2" %}
+                    <span class="disease-severity high">
+                        <i class="bi bi-exclamation-triangle-fill"></i> 高危害
+                    </span>
+                    {% elif disease.harmlevel == "1" %}
+                    <span class="disease-severity medium">
+                        <i class="bi bi-exclamation-triangle"></i> 中危害
+                    </span>
+                    {% elif disease.harmlevel == "0" %}
+                    <span class="disease-severity healthy">
+                        <i class="bi bi-check-circle-fill"></i> 健康
+                    </span>
+                    {% else %}
+                    <span class="disease-severity">
+                        <i class="bi bi-question-circle-fill"></i> 未知
+                    </span>
+                    {% endif %}
+                    <a href="{% url 'detectApp:disease_detail' disease.name %}" class="view-details-btn">查看详情</a>
+                </div>                
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <!-- 无结果提示 -->
+    <div class="no-results" id="noResults">
+        <i class="bi bi-search"></i>
+        <h3>未找到相关病害</h3>
+        <p>请尝试使用其他关键词搜索</p>
+    </div>
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+<script>
+    // 病害分类筛选功能
+    document.querySelectorAll('.category-btn').forEach(button => {
+        button.addEventListener('click', function () {
+            // 更新活跃按钮
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            this.classList.add('active');
+
+            const category = this.getAttribute('data-category');
+            filterDiseases(category);
+        });
+    });
+
+    // 搜索功能
+    document.getElementById('searchButton').addEventListener('click', performSearch);
+    document.getElementById('diseaseSearch').addEventListener('keyup', function (event) {
+        if (event.key === 'Enter') {
+            performSearch();
+        }
+    });
+
+    function filterDiseases(category) {
+        const diseaseCards = document.querySelectorAll('.disease-card');
+        let visibleCount = 0;
+
+        diseaseCards.forEach(card => {
+            if (category === 'all' || card.getAttribute('data-category') === category) {
+                card.style.display = 'flex';
+                visibleCount++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        // 显示/隐藏无结果提示
+        const noResults = document.getElementById('noResults');
+        if (visibleCount === 0) {
+            noResults.style.display = 'block';
+        } else {
+            noResults.style.display = 'none';
+        }
+    }
+
+    function performSearch() {
+        const searchTerm = document.getElementById('diseaseSearch').value.toLowerCase();
+        const diseaseCards = document.querySelectorAll('.disease-card');
+        let visibleCount = 0;
+
+        diseaseCards.forEach(card => {
+            const diseaseName = card.querySelector('.disease-name').textContent.toLowerCase();
+            const diseaseDescription = card.querySelector('.disease-description').textContent.toLowerCase();
+
+            if (diseaseName.includes(searchTerm) || diseaseDescription.includes(searchTerm)) {
+                card.style.display = 'flex';
+                visibleCount++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        // 显示/隐藏无结果提示
+        const noResults = document.getElementById('noResults');
+        if (visibleCount === 0) {
+            noResults.style.display = 'block';
+        } else {
+            noResults.style.display = 'none';
+        }
+
+        // 同时更新分类按钮状态
+        document.querySelectorAll('.category-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        document.querySelector('.category-btn[data-category="all"]').classList.add('active');
+    }
+</script>
+{% endblock extra_js %}

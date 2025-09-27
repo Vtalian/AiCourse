@@ -1,194 +1,146 @@
 {% extends 'detectApp/base.html' %}
+{% load static %}
 
 {% block extra_style %}
 <style>
-    #canvas-wrapper:hover {
-        box-shadow: 0 0 0 4px #b6d0ff;
-        transition: box-shadow 0.2s;
-    }
-
-    #harm {
-        border-top: 1px dashed #b6d0ff;
-        margin-top: 1.5rem;
-        padding-top: 1.2rem;
-    }
-
-    /* 让左右两侧高度一致 */
-    .equal-height-row {
-        align-items: stretch;
-    }
-
-    .equal-height-col {
+    /* Hero 区域带背景图 */
+    .hero {
+        position: relative;
+        background: url('{% static "/images/tomato-greenhouse.jpg" %}') center/cover no-repeat;
+        height: 480px;
         display: flex;
-        flex-direction: column;
-        height: 100%;
-    }
-
-    .equal-height-card {
-        flex: 1 1 auto;
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-    }
-
-    .equal-height-card .card-body {
-        flex: 1 1 auto;
-        display: flex;
-        flex-direction: column;
+        align-items: center;
         justify-content: center;
+        border-radius: 1rem;
+        margin-bottom: 3rem;
+        overflow: hidden;
+    }
+
+    /* 半透明遮罩 */
+    .hero::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-color: rgba(0, 0, 0, 0.35);
+    }
+
+    /* Hero 内容 */
+    .hero-content {
+        position: relative;
+        text-align: center;
+        color: #ffffff;
+        z-index: 2;
+        padding: 0 1rem;
+    }
+
+    .hero-content h1 {
+        font-weight: 700;
+        font-size: 2.8rem;
+    }
+
+    .hero-content p {
+        font-size: 1.25rem;
+        margin-top: 0.75rem;
+        color: #e0e7ff;
+    }
+
+    .hero-content .btn {
+        margin-top: 1.5rem;
+        padding: 0.75rem 2rem;
+        font-size: 1.1rem;
+    }
+
+    /* 功能卡片 */
+    .feature-card {
+        border-radius: 1rem;
+        border: none;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+        transition: transform 0.2s ease-in-out;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-5px);
+    }
+
+    /* 步骤图标 */
+    .step-icon {
+        width: 70px;
+        height: 70px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        font-size: 2rem;
+        margin: auto;
     }
 </style>
 {% endblock extra_style %}
 
-{% block page_header %}
-<h2 class="text-center my-4 text-primary fw-bold">病害检测</h2>
-{% endblock page_header %}
-
 {% block content %}
 <div class="container">
-    <div class="row justify-content-center mb-4 equal-height-row">
-        <!-- 左侧：画布区域 -->
-        <div class="col-12 col-md-8 text-center mb-4 equal-height-col">
-            <div class="position-relative mb-3 h-100" id="canvas-outer" style="min-height: 320px;">
-                <div class="ratio ratio-16x9 border rounded-4 shadow-sm overflow-hidden cursor-pointer h-100"
-                    id="canvas-wrapper" style="background: linear-gradient(135deg, #e0e7ff 0%, #f0f4ff 100%);">
-                    <canvas id="video-canvas" class="w-100 h-100 rounded" style="background: transparent;"></canvas>
-                    <input type="file" name="frame" accept="image/*" class="d-none" id="fileInput">
-                </div>
-                <div id="upload-hint" class="position-absolute top-50 start-50 translate-middle text-center"
-                    style="pointer-events: none; z-index: 2;">
-                    <div class="bg-white bg-opacity-75 rounded-4 shadow-lg p-4 mx-auto" style="max-width: 90%;">
-                        <i class="bi bi-cloud-arrow-up-fill fs-1 text-primary"></i>
-                        <h5 class="mt-3 mb-1 fw-semibold text-primary">点击或拖拽上传图片</h5>
-                        <div class="text-secondary small">支持 JPG/PNG/WEBP 格式，自动检测</div>
-                    </div>
-                </div>
+
+    <!-- Hero 区域带背景图 -->
+    <div class="hero mb-5">
+        <div class="hero-content">
+            <h1>智能番茄叶片病害检测系统</h1>
+            <p>基于深度学习的图像识别，快速识别病害并提供防治建议</p>
+            <a href="{% url 'detectApp:detect' %}" class="btn btn-primary rounded-pill shadow">
+                <i class="bi bi-play-circle-fill me-2"></i> 开始检测
+            </a>
+        </div>
+    </div>
+
+    <!-- 功能亮点 -->
+    <div class="row text-center mb-5">
+        <div class="col-md-4 mb-4">
+            <div class="card feature-card p-4">
+                <i class="bi bi-lightning-charge-fill text-warning fs-1 mb-3"></i>
+                <h5 class="fw-bold">快速检测</h5>
+                <p class="text-muted">几秒钟内完成病害识别，适合田间快速应用。</p>
             </div>
         </div>
-        <!-- 右侧：结果面板 -->
-        <div class="col-12 col-md-4 equal-height-col">
-            <div class="card border-0 shadow rounded-4 equal-height-card">
-                <div class="card-body text-center d-flex flex-column justify-content-center">
-                    <h5 class="card-title text-primary">检测结果</h5>
-                    <p class="card-text display-4 fw-bold" id="result">-</p>
-                    <div id="loading" class="my-3" style="display: none;">
-                        <div class="spinner-border text-info" role="status"></div>
-                    </div>
-                    <div id="harm">
-                        <h5 class="card-title text-primary">疾病危害</h5>
-                        <p class="card-text lh-lg fw-bold" id="harm-content">-</p>
-                    </div>
-                    <div id="solution">
-                        <h5 class="card-title text-primary">解决办法</h5>
-                        <p class="card-text lh-lg fw-bold" id="content">-</p>
-                    </div>
-                </div>
+        <div class="col-md-4 mb-4">
+            <div class="card feature-card p-4">
+                <i class="bi bi-graph-up-arrow text-success fs-1 mb-3"></i>
+                <h5 class="fw-bold">高准确率</h5>
+                <p class="text-muted">采用先进的深度学习模型，识别准确率超过90%。</p>
             </div>
-            <div id="message-box"
-                class="alert alert-info alert-dismissible fade d-none position-fixed bottom-0 start-50 translate-middle-x mb-4"
-                role="alert" style="z-index: 1050; min-width: 300px;">
-                <span id="message-text"></span>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card feature-card p-4">
+                <i class="bi bi-journal-bookmark-fill text-primary fs-1 mb-3"></i>
+                <h5 class="fw-bold">知识库支持</h5>
+                <p class="text-muted">结合病害百科，提供防治措施与解决方案。</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 使用步骤 -->
+    <div class="mb-5">
+        <h3 class="text-center fw-bold mb-4 text-primary">如何使用？</h3>
+        <div class="row text-center">
+            <div class="col-md-4 mb-4">
+                <div class="step-icon bg-primary text-white mb-3">
+                    <i class="bi bi-upload"></i>
+                </div>
+                <h6 class="fw-bold">1. 上传图片</h6>
+                <p class="text-muted">选择叶片照片并上传到系统。</p>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="step-icon bg-success text-white mb-3">
+                    <i class="bi bi-cpu"></i>
+                </div>
+                <h6 class="fw-bold">2. AI 分析</h6>
+                <p class="text-muted">系统自动识别病害并生成结果。</p>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="step-icon bg-warning text-white mb-3">
+                    <i class="bi bi-check2-circle"></i>
+                </div>
+                <h6 class="fw-bold">3. 获取结果</h6>
+                <p class="text-muted">查看病害详情及防治建议。</p>
             </div>
         </div>
     </div>
 </div>
 {% endblock content %}
-
-{% block extra_js %}
-<script>
-    const canvas = document.getElementById("video-canvas");
-    const ctx = canvas.getContext("2d");
-    const fileInput = document.getElementById("fileInput");
-    const wrapper = document.getElementById("canvas-wrapper");
-    const hint = document.getElementById("upload-hint");
-    const loading = document.getElementById("loading");
-    const ResultShow = document.getElementById("result");
-    const solutionBlock = document.getElementById("solution");
-    const contentBlock = document.getElementById("content");
-    const harmBlock = document.getElementById("harm");
-    const harm_contentBlock = document.getElementById("harm-content");
-
-    // 点击画布区域触发文件选择
-    wrapper.addEventListener("click", () => fileInput.click());
-
-    // 用户选择文件后
-    fileInput.addEventListener("change", (event) => {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = function (e) {
-            const img = new Image();
-            img.onload = function () {
-                hint.style.display = "none";
-                canvas.width = img.width;
-                canvas.height = img.height;
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            };
-            img.src = e.target.result;
-        };
-        reader.readAsDataURL(file);
-
-        // 自动上传检测
-        uploadImage(file);
-    });
-
-    // 页面加载时，面板直接显示（已在HTML中去掉hidden）
-
-    function uploadImage(file) {
-        const formData = new FormData();
-        formData.append("frame", file);
-
-        loading.style.display = "block";
-        fetch("{% url 'detectApp:detectimg' %}", {
-            method: "POST",
-            headers: { "X-CSRFToken": getCookie("csrftoken") },
-            body: formData,
-        })
-            .then(res => res.json())
-            .then(data => {
-                ResultShow.classList.remove("display-3", "display-6");
-
-                if (data.res) {
-                    ResultShow.classList.add("display-6");
-                    const detailUrl = "{% url 'detectApp:disease_detail' 'DISEASE_NAME' %}".replace('DISEASE_NAME', encodeURIComponent(data.res));
-                    ResultShow.innerHTML = `<a href="${detailUrl}" class="text-decoration-none text-primary fw-bold">${data.res}</a>`;
-                } else {
-                    ResultShow.classList.add("display-3");
-                    ResultShow.innerText = "-";
-                }
-
-                // 直接更新内容，不再动态隐藏
-                contentBlock.innerText = data.solution ? data.solution : "-";
-                harm_contentBlock.innerText = data.harm ? data.harm : "-";
-            })
-            .catch(err => {
-                console.error(err);
-                ResultShow.classList.remove("display-3", "display-6");
-                ResultShow.classList.add("display-3");
-                ResultShow.innerText = "错误";
-                contentBlock.innerText = "-";
-                harm_contentBlock.innerText = "-";
-            })
-            .finally(() => {
-                loading.style.display = "none";
-            });
-    }
-
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== "") {
-            const cookies = document.cookie.split(";");
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === name + "=") {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-</script>
-{% endblock extra_js %}

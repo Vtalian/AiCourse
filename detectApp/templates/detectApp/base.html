@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
     <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
     <script src="{% static 'js/jquery-3.6.1.min.js' %}"></script>
+    <link rel="stylesheet" href="{% static '/css/bootstrap-icons.css' %}">
     <style>
         body {
             font-family: 'Noto Sans SC', 'Inter', 'Helvetica Neue', Arial, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
@@ -97,61 +98,64 @@
 </head>
 
 <body class="bg-light">
-    <nav class="navbar navbar-expand-md navbar-light bg-light mb-4 border">
+    <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm mb-4">
         <div class="container-fluid">
-            <a class="navbar-brand" href="{% url 'detectApp:index' %}">
-                番茄病害检测系统</a>
-
+            <!-- 左侧 Logo -->
+            <a class="navbar-brand fw-bold text-primary d-flex align-items-center" href="{% url 'detectApp:index' %}">
+                <i class="bi bi-flower1 me-2 text-danger"></i>
+                番茄病害检测系统        </a>
+    
+            <!-- 折叠菜单按钮 -->
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse"
                 aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
-
+    
+            <!-- 导航项 -->
             <div class="collapse navbar-collapse" id="navbarCollapse">
+                <!-- 左侧导航菜单 -->
                 <ul class="navbar-nav me-auto mb-2 mb-md-0">
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'detectApp:index' %}">
-                            病害大全</a>
+                        <a class="nav-link" href="{% url 'detectApp:diseases' %}">病害大全</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'detectApp:index' %}">
-                            智能检测</a>
-                    </li>
-                </ul> <!-- End of links on left side of navbar -->
-
-                <!-- Account-related links -->
-                <ul class="navbar-nav ms-auto mb-2 mb-md-0">
-
-                    {% if user.is_authenticated %}
-                    <li class="nav-item">
-                        <span class="navbar-text me-2">Hello, {{ user.username }}.
-                        </span>
-                    </li>
-                    {% else %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'detectApp:index' %}">
-                            Register</a>
+                        <a class="nav-link" href="{% url 'detectApp:detect' %}">智能检测</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'detectApp:index' %}">
-                            Log in</a>
+                        <a class="nav-link" href="#">病害百科</a>
                     </li>
-                    {% endif %}
-
-                </ul> <!-- End of account-related links -->
-
-                {% if user.is_authenticated %}
-                <form action="{% url 'detectApp:index' %}" method='post'>
-                    {% csrf_token %}
-                    <button name='submit' class='btn btn-outline-secondary btn-sm'>
-                        Log out</button>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">农业资讯</a>
+                    </li>
+                </ul>
+    
+                <!-- 右侧工具区 -->
+                <form class="d-flex me-3" role="search">
+                    <input class="form-control form-control-sm rounded-pill" type="search" placeholder="搜索病害..."
+                        aria-label="Search">
                 </form>
-                {% endif %}
-
-            </div> <!-- Closes collapsible parts of navbar -->
-
-        </div> <!-- Closes navbar's container -->
-    </nav> <!-- End of navbar -->
+    
+                <div class="d-flex align-items-center">
+                    <!-- 语言切换 -->
+                    <div class="dropdown me-2">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="langMenu"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            🌐 中文
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="langMenu">
+                            <li><a class="dropdown-item" href="#">中文</a></li>
+                            <li><a class="dropdown-item" href="#">English</a></li>
+                        </ul>
+                    </div>
+    
+                    <!-- 联系我们 -->
+                    <a href="#" class="btn btn-sm btn-primary rounded-pill">联系我们</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    
 
 
     <main class="container">
@@ -163,6 +167,11 @@
             {% block content %}{% endblock content %}
         </div>
     </main>
+    <!-- 底部 -->
+    <footer class="bg-light text-center py-3 mt-5">
+        <p class="mb-1">© 2025 番茄病害检测系统</p>
+        <p class="small">由 AI + 深度学习技术驱动 | <a href="#" class="text-decoration-none">联系我们</a></p>
+    </footer>
 </body>
 {% block extra_js %}
 {% endblock extra_js %}

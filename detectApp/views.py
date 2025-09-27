@@ -9,6 +9,9 @@ from .models import Disease
 def index(request):
     return render(request, "detectApp/index.html")
 
+def detect(request):
+    return render(request, "detectApp/detect.html")
+
 def detectimg(request):
     if request.method == "POST" and request.FILES.get("frame"):
         try:
@@ -24,6 +27,17 @@ def detectimg(request):
         except Exception as e:
             return JsonResponse({"status": "error", "message": str(e)}, status=500)
     return JsonResponse({"status": "error", "message": "Invalid request"}, status=400)
+
+
+def diseases(request):
+    all_diseases = Disease.objects.all()
+
+    return render(
+        request,
+        "detectApp/disease_all.html",
+        {"diseases": all_diseases},
+    )
+
 
 def disease_detail(request, name):
     try:

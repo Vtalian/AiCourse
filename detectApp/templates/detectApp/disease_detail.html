@@ -2,53 +2,130 @@
 
 {% block extra_style %}
 <style>
+    /* 给卡片添加柔和阴影和圆角 */
+    .disease-card {
+        background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+        border-radius: 1.2rem;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        transition: transform 0.2s ease-in-out;
+    }
 
+    .disease-card:hover {
+        transform: translateY(-4px);
+    }
+
+    /* 图标标题对齐 */
+    .section-title {
+        display: flex;
+        align-items: center;
+        font-weight: 600;
+        color: #334155;
+        margin-bottom: 0.5rem;
+    }
+
+    .section-title i {
+        font-size: 1.2rem;
+        margin-right: 0.5rem;
+    }
+
+    /* 内容文字 */
+    .card-text {
+        line-height: 1.8;
+        color: #475569;
+    }
+
+    /* 解决办法的高亮 */
+    .solution {
+        background: #fefce8;
+        border-left: 4px solid #facc15;
+        padding: 0.75rem 1rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        color: #854d0e;
+    }
+
+    /* 返回按钮美化 */
+    .back-btn {
+        border-radius: 9999px;
+        padding: 0.6rem 1.6rem;
+        font-weight: 500;
+    }
 </style>
 {% endblock extra_style %}
-
-{% block page_header %}
-<h2 class="text-center my-4 text-primary fw-bold">{{ disease.name }}</h2>
-{% endblock page_header %}
 
 {% block content %}
 <div class="container">
     <div class="row justify-content-center mb-5">
         <div class="col-12 col-lg-8">
-            <div class="card border-0 shadow-lg rounded-4 mb-4"
-                style="background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);">
+
+            <!-- 顶部标题 + 图标 -->
+            <div class="text-center mb-4">
+                <h2 class="fw-bold text-success">{{ disease.name }}</h2>
+                <p class="text-muted">作物病害百科 · AI检测推荐</p>
+            </div>
+
+            <!-- 详情卡片 -->
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
                 <div class="card-body px-4 py-5">
-                    <div class="mb-4">
-                        <h6 class="fw-bold text-secondary mb-2">
-                            <i class="bi bi-info-circle me-2 text-primary">症状</i>
-                        </h6>
-                        <p class="card-text lh-lg">{{ disease.description }}</p>
+
+                    <!-- 症状 -->
+                    <div class="mb-5">
+                        <div class="section-title text-primary">
+                            <i class="bi bi-thermometer-half me-2"></i> 症状
+                        </div>
+                        <p class="card-text fs-6">{{ disease.description }}</p>
                     </div>
-                    <div class="mb-4">
-                        <h6 class="fw-bold text-secondary mb-2">
-                            <i class="bi bi-exclamation-triangle me-2 text-primary">危害</i>
-                        </h6>
-                        <p class="card-text lh-lg">{{ disease.harm }}</p>
+
+                    <!-- 危害 -->
+                    <div class="mb-5 p-3 rounded-3" style="background:#fef2f2; border-left:4px solid #ef4444;">
+                        <div class="section-title text-danger">
+                            <i class="bi bi-bug-fill me-2"></i> 危害
+                        </div>
+                        <p class="card-text fs-6">{{ disease.harm }}</p>
                     </div>
-                    <div class="mb-4">
-                        <h6 class="fw-bold text-secondary mb-2">
-                            <i class="bi bi-shield-check me-2 text-primary">预防措施</i>
-                        </h6>
-                        <p class="card-text lh-lg" style="white-space: pre-line;">{{ disease.precaution }}</p>
+
+                    <!-- 预防措施 -->
+                    <div class="mb-5 p-3 rounded-3" style="background:#f0fdf4; border-left:4px solid #22c55e;">
+                        <div class="section-title text-success">
+                            <i class="bi bi-shield-check me-2"></i> 预防措施
+                        </div>
+                        <p class="card-text fs-6" style="white-space: pre-line;">{{ disease.precaution }}</p>
                     </div>
-                    <div>
-                        <h6 class="fw-bold text-primary mb-2">
-                            <i class="bi bi-lightbulb me-2 text-primary">解决办法</i>
-                        </h6>
-                        <p class="card-text fw-bold lh-lg text-primary-emphasis">{{ disease.solution }}</p>
+
+                    <!-- 解决办法 -->
+                    <div class="p-3 rounded-3" style="background:#fefce8; border-left:4px solid #eab308;">
+                        <div class="section-title text-warning">
+                            <i class="bi bi-lightbulb-fill me-2"></i> 解决办法
+                        </div>
+                        <p class="card-text fs-6 fw-semibold">{{ disease.solution }}</p>
                     </div>
+
                 </div>
             </div>
-            <div class="text-center">
-                <a href="{% url 'detectApp:index' %}" class="btn btn-outline-primary rounded-pill px-4 shadow-sm">
+
+            <!-- 标签 + 推荐文章 -->
+            <div class="mt-4 p-3 bg-white shadow-sm rounded-4">
+                <div class="d-flex flex-wrap mb-3">
+                    <span class="badge bg-success-subtle text-success me-2">#{{ disease.name }}</span>
+                    <span class="badge bg-info-subtle text-info me-2">#作物保护</span>
+                    <span class="badge bg-warning-subtle text-warning">#AI检测</span>
+                </div>
+                <h6 class="fw-bold text-primary mb-2"><i class="bi bi-journal-text me-1"></i> 推荐阅读</h6>
+                <ul class="small text-muted">
+                    <li>如何科学灌溉预防 {{ disease.name }}？</li>
+                    <li>番茄主要病害对比与快速识别</li>
+                    <li>AI 在智慧农业中的应用</li>
+                </ul>
+            </div>
+
+            <!-- 返回按钮 -->
+            <div class="text-center mt-4">
+                <a href="{% url 'detectApp:index' %}" class="btn btn-primary back-btn shadow-sm">
                     <i class="bi bi-arrow-left"></i> 返回检测
                 </a>
             </div>
         </div>
     </div>
 </div>
+
 {% endblock content %}

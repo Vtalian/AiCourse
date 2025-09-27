@@ -1,0 +1,258 @@
+{% extends 'detectApp/base.html' %}
+
+{% block extra_style %}
+<style>
+    /* 上传区域 hover 效果 */
+    #canvas-wrapper:hover {
+        box-shadow: 0 0 0 4px #b6d0ff;
+        transition: box-shadow 0.3s ease;
+    }
+
+    /* 结果区块 */
+    #harm,
+    #solution {
+        border-top: 1px dashed #b6d0ff;
+        margin-top: 1.5rem;
+        padding-top: 1.2rem;
+    }
+
+    /* 卡片阴影优化 */
+    .card {
+        border: none;
+        border-radius: 1.5rem;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+        transition: transform 0.2s;
+    }
+
+    .card:hover {
+        transform: translateY(-3px);
+    }
+
+    /* 底部信息 */
+    footer {
+        margin-top: 3rem;
+        padding: 1.5rem 0;
+        text-align: center;
+        color: #6c757d;
+        border-top: 1px solid #e9ecef;
+        background: #f8f9fa;
+    }
+
+    /* 推荐区 */
+    .recommend-card {
+        border-left: 4px solid #0d6efd;
+        padding-left: 1rem;
+    }
+
+    .recommend-card h6 {
+        font-weight: 600;
+    }
+</style>
+{% endblock extra_style %}
+
+{% block page_header %}
+<h2 class="text-center my-4 text-primary fw-bold">番茄病害检测</h2>
+<p class="text-center text-muted">上传图片，系统将自动识别病害并提供解决建议</p>
+{% endblock page_header %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center mb-4 equal-height-row">
+        <!-- 左侧上传 -->
+        <div class="col-12 col-md-8 text-center mb-4 equal-height-col">
+            <div class="position-relative mb-3 h-100" id="canvas-outer" style="min-height: 320px;">
+                <div class="ratio ratio-16x9 border rounded-4 shadow-sm overflow-hidden cursor-pointer h-100"
+                    id="canvas-wrapper" style="background: linear-gradient(135deg, #e0e7ff 0%, #f0f4ff 100%);">
+                    <canvas id="video-canvas" class="w-100 h-100 rounded"></canvas>
+                    <input type="file" name="frame" accept="image/*" class="d-none" id="fileInput">
+                </div>
+                <div id="upload-hint" class="position-absolute top-50 start-50 translate-middle text-center"
+                    style="pointer-events: none; z-index: 2;">
+                    <div class="bg-white bg-opacity-75 rounded-4 shadow-lg p-4 mx-auto" style="max-width: 90%;">
+                        <i class="bi bi-cloud-arrow-up-fill fs-1 text-primary"></i>
+                        <h5 class="mt-3 mb-1 fw-semibold text-primary">点击或拖拽上传图片</h5>
+                        <div class="text-secondary small">支持 JPG/PNG/WEBP 格式，自动检测</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧结果 -->
+        <!-- 右侧结果 -->
+        <div class="col-12 col-md-4 equal-height-col">
+            <div class="card equal-height-card border-0 shadow-lg rounded-4">
+                <div class="card-body text-center d-flex flex-column justify-content-center">
+        
+                    <!-- 检测结果标题 -->
+                    <h5 class="card-title text-primary mb-3">
+                        <i class="bi bi-clipboard2-pulse me-2"></i> 检测报告
+                    </h5>
+        
+                    <!-- 状态徽章 -->
+                    <div id="status-badge" class="mb-3">
+                        <span class="badge bg-secondary fs-6 px-3 py-2">待检测</span>
+                    </div>
+        
+                    <!-- 检测结果 -->
+                    <p class="card-text display-6 fw-bold text-dark mb-2" id="result">-</p>
+        
+                    <!-- 置信度进度条 -->
+                    <div class="progress my-3" style="height: 8px; display: none;" id="confidence-wrapper">
+                        <div id="confidence-bar" class="progress-bar bg-info" role="progressbar" style="width: 0%;"
+                            aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <small id="confidence-text" class="text-muted" style="display:none;">置信度：--%</small>
+        
+                    <!-- Loading -->
+                    <div id="loading" class="my-3" style="display: none;">
+                        <div class="spinner-border text-info" role="status"></div>
+                    </div>
+        
+                    <!-- 危害 -->
+                    <div id="harm" class="text-start mt-4 p-3 rounded-3 bg-light">
+                        <h6 class="fw-bold text-danger">
+                            <i class="bi bi-exclamation-triangle-fill me-1"></i> 疾病危害
+                        </h6>
+                        <p class="card-text lh-lg fw-medium mb-0" id="harm-content">-</p>
+                    </div>
+        
+                    <!-- 解决办法 -->
+                    <div id="solution" class="text-start mt-4 p-3 rounded-3"
+                        style="background: #fefce8; border-left: 4px solid #facc15;">
+                        <h6 class="fw-bold text-warning">
+                            <i class="bi bi-lightbulb-fill me-1"></i> 解决办法
+                        </h6>
+                        <p class="card-text lh-lg fw-medium mb-0" id="content">-</p>
+                    </div>
+                </div>
+            </div>
+        
+            <!-- 推荐区 -->
+            <div class="mt-4 p-3 bg-white rounded-4 shadow-sm recommend-card">
+                <h6 class="text-primary"><i class="bi bi-bookmark-star me-1"></i> 病害百科推荐</h6>
+                <p class="small text-muted mb-1">🔎 如何预防番茄早疫病？</p>
+                <p class="small text-muted mb-1">💧 科学灌溉在防病中的作用</p>
+                <p class="small text-muted">📰 最新农业资讯：智能检测与AI助农</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+
+{% block extra_js %}
+<script>
+    const canvas = document.getElementById("video-canvas");
+    const ctx = canvas.getContext("2d");
+    const fileInput = document.getElementById("fileInput");
+    const wrapper = document.getElementById("canvas-wrapper");
+    const hint = document.getElementById("upload-hint");
+    const loading = document.getElementById("loading");
+    const ResultShow = document.getElementById("result");
+    const solutionBlock = document.getElementById("solution");
+    const contentBlock = document.getElementById("content");
+    const harmBlock = document.getElementById("harm");
+    const harm_contentBlock = document.getElementById("harm-content");
+
+    // 点击画布区域触发文件选择
+    wrapper.addEventListener("click", () => fileInput.click());
+
+    // 用户选择文件后
+    fileInput.addEventListener("change", (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const img = new Image();
+            img.onload = function () {
+                hint.style.display = "none";
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+
+        // 自动上传检测
+        uploadImage(file);
+    });
+
+    // 页面加载时，面板直接显示（已在HTML中去掉hidden）
+
+    function uploadImage(file) {
+        const formData = new FormData();
+        formData.append("frame", file);
+
+        loading.style.display = "block";
+        fetch("{% url 'detectApp:detectimg' %}", {
+            method: "POST",
+            headers: { "X-CSRFToken": getCookie("csrftoken") },
+            body: formData,
+        })
+            .then(res => res.json())
+            .then(data => {
+                ResultShow.classList.remove("display-3", "display-6");
+
+                if (data.res) {
+                    // 结果文字
+                    ResultShow.innerHTML = `<a href="/disease/${encodeURIComponent(data.res)}/" 
+                             class="text-decoration-none text-primary fw-bold">${data.res}</a>`;
+
+                    // 状态徽章
+                    const badge = document.getElementById("status-badge");
+                    if (data.status === "healthy") {
+                        badge.innerHTML = `<span class="badge bg-success fs-6 px-3 py-2">✅ 健康植株</span>`;
+                    } else if (data.status === "suspect") {
+                        badge.innerHTML = `<span class="badge bg-warning text-dark fs-6 px-3 py-2">⚠️ 疑似病害</span>`;
+                    } else {
+                        badge.innerHTML = `<span class="badge bg-danger fs-6 px-3 py-2">❌ 检测出病害</span>`;
+                    }
+
+                    // 置信度显示
+                    if (data.confidence) {
+                        const conf = Math.round(data.confidence * 100);
+                        document.getElementById("confidence-wrapper").style.display = "block";
+                        document.getElementById("confidence-text").style.display = "block";
+                        document.getElementById("confidence-bar").style.width = conf + "%";
+                        document.getElementById("confidence-text").innerText = "置信度：" + conf + "%";
+                    }
+
+                } else {
+                    ResultShow.innerText = "-";
+                }
+
+                // 直接更新内容，不再动态隐藏
+                contentBlock.innerText = data.solution ? data.solution : "-";
+                harm_contentBlock.innerText = data.harm ? data.harm : "-";
+            })
+            .catch(err => {
+                console.error(err);
+                ResultShow.classList.remove("display-3", "display-6");
+                ResultShow.classList.add("display-3");
+                ResultShow.innerText = "错误";
+                contentBlock.innerText = "-";
+                harm_contentBlock.innerText = "-";
+            })
+            .finally(() => {
+                loading.style.display = "none";
+            });
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== "") {
+            const cookies = document.cookie.split(";");
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === name + "=") {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+{% endblock extra_js %}
