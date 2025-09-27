@@ -17,10 +17,8 @@ def detect(request):
 def detectimg(request):
     if request.method == "POST" and request.FILES.get("frame"):
         try:
-            # 直接从 request.FILES 读取并转成 PIL Image
             image = Image.open(request.FILES["frame"]).convert("RGB")
-
-            # 模型预测
+            
             predicted_class = predict_image(image)
 
             disease=Disease.objects.get(name=predicted_class)
