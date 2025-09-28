@@ -37,7 +37,7 @@ python manage.py migrate
 ---
 
 ## 3. 确保使用已经预备的数据库
-病害相关信息为提前预备的知识库，需导入至数据库使用！
+初始化数据库后，将额外数据库文件 `db.sqlite3` 放在项目根目录下（与 `manage.py` 同级）。
 
 
 ## 4. 模型文件准备
@@ -45,7 +45,7 @@ python manage.py migrate
 确保模型权重文件已放在：
 
 ```
-Core/Model/CNN.pth
+Core/Model/ConvNeXt.pth
 ```
 
 ---
@@ -70,7 +70,7 @@ AiCourse/
 ├── Core/
 │   ├── ModelUse.py
 │   └── Model/
-│       └── CNN.pth
+│       └── ConvNeXt.pth
 ├── detectApp/
 │   ├── models.py
 │   ├── views.py
@@ -95,5 +95,5 @@ AiCourse/
   - 在项目根目录（含 manage.py）下运行所有命令。
 
 - **模型加载失败**
-  - 检查 `Core/Model/CNN.pth` 路径和文件是否存在。
+  - 检查 `Core/Model/ConvNeXt.pth` 路径和文件是否存在。
 
